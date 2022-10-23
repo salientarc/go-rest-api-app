@@ -73,9 +73,7 @@ func AddProduct(product Product) {
 
 	defer db.Close()
 
-	insert, err := db.Query(
-		"INSERT INTO product (code,name,qty,last_updated) VALUES (?,?,?, now())",
-		product.Code, product.Name, product.Qty)
+	insert, err := db.Query("INSERT INTO product (code,name,qty,last_updated) VALUES (?,?,?, now())", product.Code, product.Name, product.Qty)
 	ErrorCheck(err)
 
 	defer insert.Close()
@@ -90,6 +88,20 @@ func DeleteProduct(code string) bool {
 
 	results, err := db.Query("DELETE FROM product WHERE code=?", code)
 	ErrorCheck(err)
+
+	defer results.Close()
+
+	return true
+}
+
+func UpdateProduct(code string, product Product) bool {
+	LoadEnv()
+	db, err := sql.Open("mysql", os.Getenv("DBUSER")+":"+os.Getenv("DBPASS")+"@tcp(127.0.0.1:3306)/"+os.Getenv("DBNAME"))
+	ErrorCheck(err)
+
+	defer db.Close()
+
+	results, err := db.Query("UPDATE product SET code=?, name=?, qty=?, last_updated=now() WHERE code=?", product.Code, product.Name, product.Qty, code)
 
 	defer results.Close()
 

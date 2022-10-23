@@ -10,10 +10,37 @@ import (
 
 func main() {
 	router := gin.Default()
+
+	// get all products
+	// http://localhost:8083/products
 	router.GET("/products", getProducts)
+
+	// get a specific product using product ID
+	// http://localhost:8083/product/<product-code>
 	router.GET("/product/:code", getProduct)
-	router.POST("/products", addProduct)
-	router.DELETE("/delete/:code", deleteProduct)
+
+	// add products
+	// http://localhost:8083/product/add
+	//	{
+	//		"code": "<product-code>,
+	//		"name": "<product-name>",
+	//		"qty": <product-quantity>
+	//	}
+	router.POST("/product/add", addProduct)
+
+	// delete a product using product code
+	// http://localhost:8083/product/delete/<product-code>
+	router.DELETE("/product/delete/:code", deleteProduct)
+
+	// update product details using product ID
+	// http://localhost:8083/product/update/<product-code>
+	//	{
+	//		"code": "<product-code>,
+	//		"name": "<product-name>",
+	//		"qty": <product-quantity>
+	//	}
+	router.PUT("/product/update/:code", updateProduct)
+
 	router.Run("localhost:8083")
 }
 
@@ -62,5 +89,21 @@ func deleteProduct(c *gin.Context) {
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.IndentedJSON(http.StatusOK, del)
+	}
+}
+
+func updateProduct(c *gin.Context) {
+	code := c.Param("code")
+	var prod mods.Product
+
+	err := c.BindJSON(&prod)
+	mods.ErrorCheck(err)
+
+	update := mods.UpdateProduct(code, prod)
+
+	if !update {
+		c.AbortWithStatus(http.StatusNotFound)
+	} else {
+		c.IndentedJSON(http.StatusOK, update)
 	}
 }
